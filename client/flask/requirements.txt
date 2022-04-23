@@ -1,0 +1,6 @@
+flask
+uWSGI
+Flask-WTF
+WTForms
+requests
+starlette

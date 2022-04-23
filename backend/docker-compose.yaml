@@ -1,0 +1,63 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: fe_backend_postgres
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_DB: ${PG_DATABASE}
+    networks:
+      private_network:
+        ipv4_address: 172.16.0.3
+    ports:
+      - "5432:5432"
+    volumes:
+      - fe_postgres:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fe_backend_pgadmin
+    restart: always
+    user: 5050:5050
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_LISTEN_PORT: 80
+    networks:
+      private_network:
+        ipv4_address: 172.16.0.4
+    ports:
+      - 81:80
+    volumes:
+      - fe_pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
+
+  fastapi:
+    build: .
+    container_name: fe_backend_fastapi
+    networks:
+      private_network:
+        ipv4_address: 172.16.0.5  # todo Вынести в .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+volumes:
+  fe_postgres:
+    external: True
+  fe_pgadmin:
+    external: True
+
+networks:
+  private_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/16
